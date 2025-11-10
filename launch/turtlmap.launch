@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
     <arg name="bag_dirs" default="DIRECTORY to BAGS"/>
-    <arg name="bag1" default="$(arg bag_dirs)/logX.bag"/>
-    <arg name="bag2" default="$(arg bag_dirs)/logX_imu.bag"/>
-    <arg name="bag3" default="$(arg bag_dirs)/logX_zed-001.bag"/>
+    <arg name="bag1" default="$(arg bag_dirs)/log.bag"/>
+    <arg name="bag2" default="$(arg bag_dirs)/log_imu.bag"/>
+    <arg name="bag3" default="$(arg bag_dirs)/log_zed.bag"/>
     <arg name="start_time" default="S"/>
   
     <!-- rosbag play node with the arguments -->
