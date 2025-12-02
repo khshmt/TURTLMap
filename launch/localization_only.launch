@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <!-- set sim time to true -->
+    <param name="/use_sim_time" value="true" />
+
+    <node name="turtlmap" pkg="turtlmap" type="turtlmap_node" output="screen">
+        <param name="config_file" value="$(find turtlmap)/param/rexrovConfig.yaml" />
+    </node>
+</launch>

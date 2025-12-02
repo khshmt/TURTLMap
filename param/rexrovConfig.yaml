@@ -33,20 +33,26 @@ imu_preintegration_params:
     gap_time: 1.0 # key frame frequency
 
 
+# S --> IMU(sensor frame)
+# B --> Body frame (ROV frame)
+# So --> Sonar frame
+# D --> DVL frame
+# Ba --> Barometer frame
+
 # GX5-25 IMU TODO: Jingyu check the datasheet again
 imu_params: # TODO: also check if their IMU has same convention as ours (should all be ros convention tho)
     g: 9.81007 # Earth's acceleration due to gravity [m/s^2] - should be positive value
     # change to our values
     acc_max: 78.48000336
     gyro_max: 17.4533
-    gyro_noise_density: 8.726646e-05 # gyro noise density [rad/s/sqrt(Hz)] 0.00016017
-    acc_noise_density: 0.00024525 # accelerometer noise density [m/s^2/sqrt(Hz)] 0.00071376
+    gyro_noise_density: 0.0003394 # gyro noise density [rad/s/sqrt(Hz)] 0.00016017
     gyro_bias_prior: 0.0 # gyro bias prior [rad/s]
+    gyro_random_walk: 0.000038785 # gyro drift noise density [rad/s^s/sqrt(Hz)] 0.00000165
+    acc_noise_density: 0.004 # accelerometer noise density [m/s^2/sqrt(Hz)] 0.00071376
     acc_bias_prior: 0.0 # accelerometer bias prior [m/s^2]
-    gyro_random_walk: 0.00061324618 # gyro drift noise density [rad/s^s/sqrt(Hz)] 0.00000165
-    acc_random_walk: 0.00620438876 # accelerometer drift noise density [m/s^2/sqrt(Hz)] 0.00002874
+    acc_random_walk: 0.006 # accelerometer drift noise density [m/s^2/sqrt(Hz)] 0.00002874
     integration_covariance: 0.0001
-    imu_rate: 250.0
+    imu_rate: 100.0
     T_BS:
     # indentity
         [1.0000, 0.0000, 0.0000, 0.0000,
@@ -64,9 +70,9 @@ sonar_params:
 dvl_params:
 
     T_SD:
-        [-0.00298184, -0.99999099, -0.00302088, 0.001,
-        0.0130104,  0.00298184, -0.99991092, -0.04,
-        0.99991092, -0.00302088,  0.01300139, 0.113,
+        [0.0, 0.0, 1.0, 0.294307,
+        0.0,  1.0, 0.0, -0.468494,
+        -1.0, 0.0,  0.0, 0.68,
         0.0, 0.0, 0.0, 1.0] # Iowa 2024 Config S=the new IMU 0 degree
     
     T_W_WD:
@@ -78,21 +84,21 @@ dvl_params:
     fom_threshold: 0.01 # 0.01 is a good threshold based on d3_r10 (wave log)
 barometer_params:
     T_SBa:
-        [1.0000, 0.0000, 0.0000, 0.0000,
-         0.0000, 1.0000, 0.0000, 0.0000,
-         0.0000, 0.0000, 1.0000, 0.0000,
+        [1.0000, 0.0000, 0.0000, 0.0,
+         0.0000, 1.0000, 0.0000, 0.0,
+         0.0000, 0.0000, 1.0000, 0.0,
          0.0000, 0.0000, 0.0000, 1.0000]
-    atm_press: 993.3999633789062
+    atm_press: 101.325
         
 
 sensor_topics:
   dvl: "/dvl/data"
   dvl_local_position: "/dvl/local_position"
-  imu: '/nav/filtered_imu/data'
+  imu: '/rexrov2/imu'
   left_cam: '/zedm/zed_node/left_raw/image_raw_color'
   right_cam: '/zedm/zed_node/right_raw/image_raw_color'
   sonar: "/ping_sonar/range"
-  barometer: "/BlueROV/pressure2_fluid"
+  barometer: "/rexrov2/pressure"
 
 sensor_list:
     isImuUsed: true
@@ -119,4 +125,4 @@ kf_gap_time: 1.0
 
 using_pseudo_dvl: true
 
-sensors_ENU: false
+sensors_ENU: true
