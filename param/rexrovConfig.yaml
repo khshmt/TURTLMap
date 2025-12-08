@@ -56,8 +56,8 @@ imu_params: # TODO: also check if their IMU has same convention as ours (should 
     T_BS:
     # indentity
         [1.0000, 0.0000, 0.0000, 0.0000,
-         0.0000, 1.0000, 0.0000, 0.0000,
-         0.0000, 0.0000, 1.0000, 0.0000,
+         0.0000, -1.0000, 0.0000, 0.0000,
+         0.0000, 0.0000, -1.0000, 0.0000,
          0.0000, 0.0000, 0.0000, 1.0000]
 
 sonar_params:
@@ -71,7 +71,7 @@ dvl_params:
 
     T_SD:
         [0.0, 0.0, 1.0, 0.294307,
-        0.0,  1.0, 0.0, -0.468494,
+        0.0, 1.0, 0.0, -0.468494,
         -1.0, 0.0,  0.0, 0.68,
         0.0, 0.0, 0.0, 1.0] # Iowa 2024 Config S=the new IMU 0 degree
     
@@ -126,3 +126,5 @@ kf_gap_time: 1.0
 using_pseudo_dvl: true
 
 sensors_ENU: true
+
+barometer_conversion_factor: 1000 # convert from kPa to Pa

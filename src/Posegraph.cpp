@@ -163,7 +163,8 @@ namespace pose_graph_backend
         params->dvl_fom_threshold_ = config["dvl_params"]["fom_threshold"].as<double>();
         params->kf_gap_time_ = config["kf_gap_time"].as<double>();
         params->using_pseudo_dvl_ = config["using_pseudo_dvl"].as<bool>();
-        params->sensors_ENU = config["sensors_ENU"].as<bool>();
+        params->sensors_ENU_ = config["sensors_ENU"].as<bool>();
+        params->barometer_conversion_factor_ = config["barometer_conversion_factor"].as<int>();
 
         return params;
     }

@@ -383,53 +383,20 @@ namespace pose_graph_backend
     void PosegraphBackendOnline::callbackIMU(const sensor_msgs::ImuConstPtr &imu_msg)
     {
         // IMU rotation
-        gtsam::Rot3 imu_rot(imu_msg->orientation.w,
-                        imu_msg->orientation.x,
-                        imu_msg->orientation.y,
-                        imu_msg->orientation.z);
+        gtsam::Rot3 imu_rot = gtsam::Pose3(posegraph_->params_->extrinsics_.T_BS).rotation() * gtsam::Rot3(imu_msg->orientation.w,
+                                                                                                           imu_msg->orientation.x,
+                                                                                                           imu_msg->orientation.y,
+                                                                                                           imu_msg->orientation.z);
         // ACCELERATION
-        gtsam::Vector3 imu_acc(
-            imu_msg->linear_acceleration.x,
-            imu_msg->linear_acceleration.y,
-            imu_msg->linear_acceleration.z);
-
+        gtsam::Vector3 imu_acc = posegraph_->params_->extrinsics_.T_BS.block<3, 3>(0, 0) * gtsam::Vector3(imu_msg->linear_acceleration.x,
+                                                                                           imu_msg->linear_acceleration.y,
+                                                                                           imu_msg->linear_acceleration.z);
         // GYRO
-        gtsam::Vector3 imu_gyro(
-            imu_msg->angular_velocity.x,
-            imu_msg->angular_velocity.y,
-            imu_msg->angular_velocity.z);
-        if (posegraph_->params_->sensors_ENU)
-        {
-            // Convert incoming IMU message from ENU to NED
-            // --------------------------------------------------
-            gtsam::Quaternion q_enu(
-                imu_msg->orientation.w,
-                imu_msg->orientation.x,
-                imu_msg->orientation.y,
-                imu_msg->orientation.z);
+        gtsam::Vector3 imu_gyro = posegraph_->params_->extrinsics_.T_BS.block<3, 3>(0, 0) * gtsam::Vector3(imu_msg->angular_velocity.x,
+                                                                                            imu_msg->angular_velocity.y,
+                                                                                            imu_msg->angular_velocity.z);
 
-            // 90° rotation around Z, then 180° around X
-            gtsam::Quaternion q_enu_to_ned(0.0, 1.0 / sqrt(2.0), 1.0 / sqrt(2.0), 0.0);
-
-            // final orientation in NED
-            gtsam::Quaternion q_ned = q_enu_to_ned * q_enu;
-            imu_rot = gtsam::Rot3(q_ned.w(), q_ned.x(), q_ned.y(), q_ned.z());
-
-            // ACCELERATION ENU → NED
-            imu_acc = gtsam::Vector3(
-                imu_msg->linear_acceleration.y,
-                imu_msg->linear_acceleration.x,
-                -imu_msg->linear_acceleration.z);
-
-            // GYRO ENU → NED
-            imu_gyro = gtsam::Vector3(
-                imu_msg->angular_velocity.y,
-                imu_msg->angular_velocity.x,
-                -imu_msg->angular_velocity.z);
-            // --------------------------------------------------
-        }
         // const std::lock_guard<std::mutex> lock(mtx_);
-
         // if is_rot_initialized_ is false, then initialize the rotation with the first IMU message
         if (!is_rot_initialized_)
         {
@@ -521,31 +488,11 @@ namespace pose_graph_backend
         double dt_dvl;
         double dvl_current_time = dvl_msg->header.stamp.toSec();
         
-        gtsam::Vector3 vel_ned;
-        gtsam::Vector3 vel_enu;
-        if (posegraph_->params_->sensors_ENU)
-        {
-            //-----------------------------------------
-            // CONVERT DVL VELOCITY:  ENU → NED
-            //-----------------------------------------
-            vel_enu = gtsam::Vector3(dvl_msg->velocity.x,
-                                   dvl_msg->velocity.y,
-                                   dvl_msg->velocity.z);
-            // ENU → NED transform
-            vel_ned.x() = vel_enu.y();
-            vel_ned.y() = vel_enu.x();
-            vel_ned.z() = -vel_enu.z();
-        }
-        else
-        {
-            vel_ned = gtsam::Vector3(dvl_msg->velocity.x,
-                                   dvl_msg->velocity.y,
-                                   dvl_msg->velocity.z);
-        }
-
         // rotate into IMU (sensor) frame
         gtsam::Vector3 dvl_vel =
-            posegraph_->T_SD_.block<3, 3>(0, 0, 3, 3) * vel_ned;
+            posegraph_->T_SD_.block<3, 3>(0, 0, 3, 3) * gtsam::Vector3(dvl_msg->velocity.x,
+                                                                       dvl_msg->velocity.y,
+                                                                       dvl_msg->velocity.z);
         double fom = dvl_msg->fom;
         bool is_valid = dvl_msg->velocity_valid;
 
@@ -767,26 +714,9 @@ namespace pose_graph_backend
 
             is_rot_initialized_ = true;
 
-            if (posegraph_->params_->sensors_ENU)
-            {
-                // -----------------------------
-                // ✔ ENU → NED depth correction
-                // -----------------------------
-                double depth_enu =
-                    (baro_msg->fluid_pressure - posegraph_->params_->baro_atm_pressure_) *
-                    100 / 9.81 / 997.0;
-
-                double depth_ned = -depth_enu; // invert Z to follow NED convention
-
-                first_depth_ = depth_ned;
-            }
-            else
-            {
-                double depth = (baro_msg->fluid_pressure - posegraph_->params_->baro_atm_pressure_) * 100 / 9.81 / 997.0; // TODO: add this to params
-                first_depth_ = depth;
-            }
-
-            std::cout << "First depth (NED): " << first_depth_ << std::endl;
+            double depth = (baro_msg->fluid_pressure - posegraph_->params_->baro_atm_pressure_) * posegraph_->params_->barometer_conversion_factor_ / 9.81 / 997.0; // TODO: add this to params
+            first_depth_ = depth;
+            std::cout << "First depth: " << first_depth_ << std::endl;
             return;
         }
 
@@ -795,7 +725,7 @@ namespace pose_graph_backend
         const std::lock_guard<std::mutex> lock(mtx_);
 
         // always add the latest barometer measurement to the graph
-        double depth = (baro_msg->fluid_pressure - posegraph_->params_->baro_atm_pressure_) * 100 / 9.81 / 997.0; // TODO: add this to params
+        double depth = (baro_msg->fluid_pressure - posegraph_->params_->baro_atm_pressure_) * posegraph_->params_->barometer_conversion_factor_ / 9.81 / 997.0; // TODO: add this to params
         if (first_depth_ == 0.0)
         {
             first_depth_ = depth;

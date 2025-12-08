@@ -98,6 +98,7 @@ namespace pose_graph_backend
         double kf_gap_time_;
         double dvl_fom_threshold_;
         bool using_pseudo_dvl_;
-        bool sensors_ENU;
+        bool sensors_ENU_;
+        int barometer_conversion_factor_;
     };
 }

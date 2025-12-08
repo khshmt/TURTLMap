@@ -120,3 +120,5 @@ kf_gap_time: 1.0
 using_pseudo_dvl: true
 
 sensors_ENU: false
+
+barometer_conversion_factor: 100 # convert from hectoPascal to Pascal
