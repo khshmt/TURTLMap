@@ -177,6 +177,7 @@ namespace pose_graph_backend
             std::unique_lock<std::mutex> lk(mtx_);
             cv_.wait(lk, [this]{return new_kf_flag_ == true;});
             posegraph_->index_++;
+            std::cout << "##==>> New keyframe received! index: " << posegraph_->index_ << std::endl;
             // adding smoother
             
             kf_timestamps_.push_back(current_kf_time_);
@@ -195,7 +196,6 @@ namespace pose_graph_backend
             // start to process new kf
             // new_kf_flag_ = false;
             // add different factors to the graph
-            if (posegraph_->index_ < 10000)
             posegraph_->addBarometricFactor(posegraph_->getDepthMeasurement(), 0.005, posegraph_->index_);
 
             // add IMU factor
