@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <!-- set sim time to false -->
+    <param name="/use_sim_time" value="false" />
+
+    <node name="turtlmap" pkg="turtlmap" type="turtlmap_node" output="screen">
+        <param name="config_file" value="$(find turtlmap)/param/minispector.yaml" />
+    </node>
+</launch>

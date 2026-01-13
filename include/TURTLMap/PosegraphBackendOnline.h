@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include "TURTLMap/Posegraph.h"
 #include <string>
+#include <optional>
 #include <ros/callback_queue.h>
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
@@ -19,8 +20,25 @@
 #include <waterlinked_a50_ros_driver/DVL.h>
 
 
+
 namespace pose_graph_backend
 {
+    static std::optional<ros::Time> fromString(const std::string &s)
+    {
+        size_t dot = s.find('.');
+        if(dot == std::string::npos)
+        {
+            return std::nullopt;
+        }
+        uint32_t sec = std::stoul(s.substr(0, dot));
+    
+        std::string ns = s.substr(dot + 1);
+        ns.resize(9, '0'); // pad to nanoseconds
+        uint32_t nsec = std::stoul(ns.substr(0, 9));
+    
+        return ros::Time(sec, nsec);
+    }
+    
     class PosegraphBackendOnline
     {
     private:

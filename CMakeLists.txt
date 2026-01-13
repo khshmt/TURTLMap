@@ -5,7 +5,7 @@ if(NOT ${CMAKE_VERSION} VERSION_LESS "3.0.2")
   endif (POLICY CMP0048)
 endif()
 project(turtlmap)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 
 find_package(catkin_simple REQUIRED)

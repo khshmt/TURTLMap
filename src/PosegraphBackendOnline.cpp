@@ -440,7 +440,12 @@ namespace pose_graph_backend
                 // publish the pose
                 gtsam::Pose3 latest_pose = latest_imu_prop_state_.pose();
                 geometry_msgs::PoseStamped pose_msg;
-                pose_msg.header.stamp = imu_msg->header.stamp;
+                auto val = pose_graph_backend::fromString(imu_msg->header.frame_id);
+                if(val.has_value()) {
+                    pose_msg.header.stamp = *val;
+                } else {
+                    pose_msg.header.stamp = imu_msg->header.stamp;
+                }
                 pose_msg.header.frame_id = "NED_imu";
                 pose_msg.pose.position.x = latest_pose.translation().x();
                 pose_msg.pose.position.y = latest_pose.translation().y();
