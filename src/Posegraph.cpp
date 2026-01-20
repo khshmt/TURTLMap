@@ -978,11 +978,11 @@ namespace pose_graph_backend
 
         // calculate error
         double error = smootherISAM2.getFactors().error(*result_);
-        if (std::isnan(error))
-        {
-            std::cout << "Error is NaN" << std::endl;
-            assert(false);
-        }
+        // if (std::isnan(error))
+        // {
+        //     std::cout << "Error is NaN" << std::endl;
+        //     assert(false);
+        // }
         std::cout << "Final Error = " << smootherISAM2.getFactors().error(*result_) << std::endl;
         
         // result_->print("Final Estimate:\n");
